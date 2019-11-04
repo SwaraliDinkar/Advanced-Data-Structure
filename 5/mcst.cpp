@@ -1,0 +1,235 @@
+/*
+Name:-Shubham Maheshwari
+Roll Number-2274
+Division-SE-II
+Problem Statement:-
+You have a business with several offices; you want to lease phone lines to connect them up with each other; 
+and the phone company charges different amounts of money to connect different pairs of cities. You want a set of lines that connects 
+all your offices with a minimum total cost. Solve the problem by using adjacency matrix. (solve using prims and kruskal both).
+*/
+
+#include <iostream>
+#define max 30
+#define MAX 1000
+using namespace std;
+struct edge
+{
+  int u;
+  int v;
+  int weight;	
+};
+struct edgelist
+{
+	edge data[max];
+	int x;
+};
+class graph
+{
+  public:
+  char c;
+  bool *mstset;
+  int a,n,n1,s,d,cst;
+  int **g,*keyset,*parent;
+  edgelist elist,spanlist;
+  void read_graph();
+  void prims();
+  void kruskals();
+  void sort();
+  int find(int belongs[],int vertex);
+  void uni(int belongs[],int c1,int c2);
+};
+void graph::read_graph()
+{
+    cout<<"Enter the total number of offices for telephone lines connection:-\n";
+    cin>>n;
+    g=new int*[n];
+     for(int i=0;i<n;i++)
+     {
+     	g[i]=new int[n];
+	 }
+    for(int i=0;i<n;i++)
+       {
+         for(int j=0;j<n;j++)
+            {
+              g[i][j]=0;
+            }
+        } 
+   cout<<"Enter the number of telephone connection lines:-\n"; 
+   cin>>n1;
+   cout<<"Give your Offices name one to one number mapping from 0,1,2... upto total number of Offices.\n\n";
+   for(int i=0;i<n1;i++)
+      {
+        cout<<"Enter the source office,destination office and cost:-\n";
+        cin>>s>>d>>cst;
+        g[s][d]=cst;
+        g[d][s]=cst;
+      }
+}
+
+void graph::prims()
+{
+       int sum=0;
+       mstset=new bool[n];
+	   for(int i=0;i<n;i++)
+	   {
+		 mstset[i]=false;
+	   }
+	   keyset=new int[n];
+	   for(int i=0;i<n;i++)
+	   {
+		 keyset[i]=MAX;
+	   } 
+	   parent=new int[n]; 
+	   cout<<"Enter the office number from where you want to start fitting the connection for telephone lines:-\n";
+	 l:cin>>a;
+	   if(a>n-1)
+	   {
+	   	 cout<<"Enter again:-\n";
+	   	 goto l;
+	   }
+	   keyset[a]=0;
+	   parent[a]=-1;
+	   int count=0;
+	   while(count<n-1)
+	   {
+	   	 int min=10000;
+	   	 int min_index;
+	   	 for(int i=0;i<n;i++)
+	   	 {
+	   	    if(min>keyset[i] && mstset[i]==false)
+			   {
+			   	 min=keyset[i];
+			   	 min_index=i;
+			   }	
+		 }
+		 mstset[min_index]=true;
+		 for(int i=0;i<n;i++)
+		  { 
+		 		if(g[min_index][i] && mstset[i]==false && g[min_index][i]<keyset[i])
+		 		 {
+		 			keyset[i]=g[min_index][i];
+		 			parent[i]=min_index;
+				 }
+		  }
+		  count++;
+		 }
+		 cout<<"Lines\tCost\n";
+		 for(int i=0;i<n;i++)
+		 {
+		 	if(parent[i]!=-1)
+		 	{
+		    sum=sum+g[i][parent[i]];
+		 	cout<<parent[i]<<" - "<<i<<"\t"<<g[i][parent[i]];
+		 	cout<<endl;
+		    }
+	         }
+		 cout<<"The cost for connection is:-\n";
+		 cout<<sum<<endl; 
+}
+void graph::kruskals()
+{
+    	int sum=0;
+    	int belongs[max],cno1,cno2;
+    	elist.x=0;
+    	for(int i=1;i<n;i++)
+    	{
+        for(int j=0;j<i;j++)
+          {
+            if(g[i][j]!=0)
+            {
+                elist.data[elist.x].u=i;
+                elist.data[elist.x].v=j;
+                elist.data[elist.x].weight=g[i][j];
+                elist.x++;
+            }
+          }
+        }
+        sort();
+        for(int i=0;i<n;i++)
+        {
+         belongs[i]=i;
+        }
+        spanlist.x=0;
+        for(int i=0;i<elist.x;i++)
+        {
+        cno1=find(belongs,elist.data[i].u);
+        cno2=find(belongs,elist.data[i].v);
+         if(cno1!=cno2)
+           {
+            spanlist.data[spanlist.x]=elist.data[i];
+            spanlist.x=spanlist.x+1;
+            uni(belongs,cno1,cno2);
+           }
+        }
+        cout<<"Lines\tCost\n";
+        for(int i=0;i<spanlist.x;i++)
+        {
+        	cout<<spanlist.data[i].u<<" - "<<spanlist.data[i].v<<"\t"<<spanlist.data[i].weight<<endl;
+        	sum=sum+spanlist.data[i].weight;
+		}
+		 cout<<"The cost for connection is:-\n";
+		 cout<<sum<<endl; 
+}
+
+int graph::find(int belongs[],int vertex)
+{
+       return(belongs[vertex]);
+} 
+
+void graph::uni(int belongs[],int c1,int c2)
+{
+ for(int i=0;i<n;i++)
+    {
+      if(belongs[i]==c2)
+        {
+            belongs[i]=c1;
+        }
+	}	
+}
+
+void graph::sort()
+{
+    edge temp;
+   	for(int i=1;i<elist.x;i++)
+   	{
+        for(int j=0;j<elist.x-1;j++)
+        {
+           if(elist.data[j].weight>elist.data[j+1].weight)
+            {
+                temp=elist.data[j];
+                elist.data[j]=elist.data[j+1];
+                elist.data[j+1]=temp;
+            }
+        }
+   }
+} 
+    
+int main()
+{
+  graph g1;
+  g1.read_graph();
+  int l;
+  do
+  {
+  	cout<<"Enter your choice:-\n";
+  	cout<<"1.Prim's Algorithm\n";
+  	cout<<"2.Kruskal's Algorithm\n";
+  	cout<<"3.Exit\n";
+  	cin>>l;
+  	switch(l)
+  	{
+  	 case 1:
+	   g1.prims();
+	   break;
+	 case 2:
+	   g1.kruskals();
+	   break;
+	 case 3:
+	   break;
+	 default:
+	   cout<<"!!Invalid Choice!!\n";
+	   break;	
+	}
+  }while(l!=3);
+  return 0;
+}
